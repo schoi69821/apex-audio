@@ -3,7 +3,7 @@ Edit Graph: CRDT-style append-only 편집 그래프
 """
 from dataclasses import dataclass, field, asdict
 from typing import List, Dict, Any, Optional, Tuple
-from ulid import ULID
+import ulid
 import hashlib
 import json
 import time
@@ -13,9 +13,9 @@ import time
 class EditNode:
     """CRDT-style append-only 편집 노드"""
 
-    node_id: str = field(default_factory=lambda: str(ULID()))
     node_type: str  # dsp, repaint, cover, split, align, mix, export
     params: Dict[str, Any] = field(default_factory=dict)
+    node_id: str = field(default_factory=lambda: str(ulid.new()))
     mask: Optional[Dict[str, Any]] = None
     seed: Optional[int] = None
     engine_version: str = "1.0.0"
@@ -49,7 +49,7 @@ class EditGraph:
     """CRDT Edit Graph - append-only, mergeable"""
 
     def __init__(self, source_hash: str, graph_id: Optional[str] = None):
-        self.graph_id = graph_id or str(ULID())
+        self.graph_id = graph_id or str(ulid.new())
         self.source_hash = source_hash
         self.nodes: List[EditNode] = []
         self.created_at = int(time.time() * 1000)
@@ -81,7 +81,7 @@ class EditGraph:
         if self.source_hash != other.source_hash:
             raise ValueError(f"Cannot merge graphs with different sources: {self.source_hash} != {other.source_hash}")
 
-        merged = EditGraph(self.source_hash, graph_id=str(ULID()))
+        merged = EditGraph(self.source_hash, graph_id=str(ulid.new()))
 
         # 모든 노드 수집 (중복 제거)
         node_map = {}
