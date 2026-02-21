@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apex-core.io/contracts/artifact.v1.schema.json",
+  "title": "Artifact Contract",
+  "description": "렌더링 결과물 패키지",
+  "type": "object",
+  "properties": {
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "Artifact ULID"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "NDE 세션 ID"
+    },
+    "graph_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "렌더링한 Edit Graph 해시"
+    },
+    "created_at": {
+      "type": "integer",
+      "description": "생성 시각 (Unix timestamp ms)"
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "final_wav": {
+          "type": "string",
+          "format": "uri",
+          "description": "최종 렌더 WAV (고품질)"
+        },
+        "preview_mp3": {
+          "type": "string",
+          "format": "uri",
+          "description": "프리뷰 MP3 (320kbps)"
+        },
+        "stems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "uri": {"type": "string", "format": "uri"},
+              "channel": {"type": "integer"}
+            }
+          },
+          "description": "스템 트랙 (선택)"
+        },
+        "cue_sheet": {
+          "type": "string",
+          "description": "CUE 시트 (타임코드, 마커)"
+        },
+        "loudness_report": {
+          "type": "object",
+          "properties": {
+            "integrated_lufs": {"type": "number"},
+            "true_peak_db": {"type": "number"},
+            "lra_lu": {"type": "number"},
+            "short_term_lufs_max": {"type": "number"}
+          },
+          "description": "Loudness 리포트 (ITU-R BS.1770-4)"
+        },
+        "spectrum_image": {
+          "type": "string",
+          "format": "uri",
+          "description": "스펙트럼 이미지 (PNG)"
+        },
+        "license_pack": {
+          "type": "object",
+          "properties": {
+            "license_type": {"type": "string"},
+            "attribution": {"type": "string"},
+            "commercial_use": {"type": "boolean"},
+            "derivative_works": {"type": "boolean"}
+          },
+          "description": "라이선스 정보"
+        }
+      },
+      "required": ["final_wav", "loudness_report"]
+    },
+    "qc_results": {
+      "type": "object",
+      "properties": {
+        "technical_gate": {
+          "type": "object",
+          "properties": {
+            "passed": {"type": "boolean"},
+            "clipping_ratio": {"type": "number"},
+            "lufs": {"type": "number"},
+            "true_peak_db": {"type": "number"},
+            "dc_offset": {"type": "number"}
+          }
+        },
+        "locality_gate": {
+          "type": "object",
+          "properties": {
+            "passed": {"type": "boolean"},
+            "out_mask_delta": {"type": "number"},
+            "threshold": {"type": "number"}
+          }
+        },
+        "similarity_gate": {
+          "type": "object",
+          "properties": {
+            "passed": {"type": "boolean"},
+            "max_similarity": {"type": "number"},
+            "flagged_references": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      },
+      "description": "QC Gate 결과"
+    },
+    "render_metadata": {
+      "type": "object",
+      "properties": {
+        "engine_version": {"type": "string"},
+        "render_time_ms": {"type": "integer"},
+        "gpu_used": {"type": "boolean"},
+        "cache_hit_ratio": {"type": "number"}
+      }
+    }
+  },
+  "required": ["artifact_id", "session_id", "graph_hash", "outputs", "qc_results"]
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apex-core.io/contracts/capability.v1.schema.json",
+  "title": "Capability Registry",
+  "description": "APEX 플랫폼 capability 등록",
+  "type": "object",
+  "properties": {
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Capability ID (dot notation)"
+          },
+          "provider": {
+            "type": "string",
+            "description": "제공 서비스 (apex-wafer, apex-office, apex-audio)"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "endpoints": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "method": {"type": "string", "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"]},
+                "path": {"type": "string"},
+                "description": {"type": "string"}
+              }
+            }
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "의존하는 다른 capability ID"
+          }
+        },
+        "required": ["id", "provider", "version"]
+      }
+    }
+  },
+  "additionalProperties": false
+}

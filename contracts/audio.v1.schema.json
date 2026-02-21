@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apex-core.io/contracts/audio.v1.schema.json",
+  "title": "Audio Source Contract",
+  "description": "오디오 소스 메타데이터 및 무결성 검증",
+  "type": "object",
+  "properties": {
+    "source_uri": {
+      "type": "string",
+      "format": "uri",
+      "description": "오디오 파일 URI (s3://, file://, http://)"
+    },
+    "format": {
+      "type": "string",
+      "enum": ["wav", "flac", "mp3", "aac", "ogg"],
+      "description": "오디오 파일 포맷"
+    },
+    "sample_rate": {
+      "type": "integer",
+      "enum": [44100, 48000, 96000, 192000],
+      "description": "샘플레이트 (Hz)"
+    },
+    "channels": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 16,
+      "description": "채널 수 (1: mono, 2: stereo, ...)"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "재생 시간 (밀리초)"
+    },
+    "bit_depth": {
+      "type": "integer",
+      "enum": [16, 24, 32],
+      "description": "비트 심도"
+    },
+    "checksum": {
+      "type": "object",
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 해시 (소문자 hex)"
+        }
+      },
+      "required": ["algorithm", "value"]
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "artist": {"type": "string"},
+        "title": {"type": "string"},
+        "album": {"type": "string"},
+        "license": {"type": "string"}
+      }
+    }
+  },
+  "required": ["source_uri", "format", "sample_rate", "channels", "checksum"]
+}

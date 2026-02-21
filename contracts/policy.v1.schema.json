@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apex-core.io/contracts/policy.v1.schema.json",
+  "title": "Policy Contract",
+  "description": "고객사별 NDE 정책 프로파일",
+  "type": "object",
+  "properties": {
+    "policy_id": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "Policy ULID"
+    },
+    "org_id": {
+      "type": "string",
+      "description": "조직 ID"
+    },
+    "policy_name": {
+      "type": "string",
+      "description": "정책 이름 (예: enhancement_only, full_creative)"
+    },
+    "allowed_operations": {
+      "type": "object",
+      "properties": {
+        "enhancement_only": {
+          "type": "boolean",
+          "description": "DSP 편집만 허용 (AI 생성 금지)"
+        },
+        "inpaint_allowed": {
+          "type": "boolean",
+          "description": "인페인트 허용 (노이즈 제거, 결함 수정)"
+        },
+        "style_transfer_allowed": {
+          "type": "boolean",
+          "description": "스타일 변환 허용 (장르 변경 등)"
+        },
+        "cover_generation_allowed": {
+          "type": "boolean",
+          "description": "커버 생성 허용 (AI 보컬 등)"
+        },
+        "time_stretch_allowed": {
+          "type": "boolean",
+          "description": "시간 늘이기/줄이기 허용"
+        },
+        "pitch_shift_allowed": {
+          "type": "boolean",
+          "description": "피치 변경 허용"
+        }
+      },
+      "required": ["enhancement_only"]
+    },
+    "audit_level": {
+      "type": "string",
+      "enum": ["hash_only", "full_graph", "graph_with_cache"],
+      "description": "감사 로그 수준"
+    },
+    "qc_gates": {
+      "type": "object",
+      "properties": {
+        "technical": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "clipping_ratio_max": {"type": "number", "default": 0.001},
+            "lufs_range": {
+              "type": "object",
+              "properties": {
+                "min": {"type": "number", "default": -23},
+                "max": {"type": "number", "default": -13}
+              }
+            },
+            "true_peak_max_db": {"type": "number", "default": -1.0},
+            "dc_offset_max": {"type": "number", "default": 0.01}
+          }
+        },
+        "locality": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "out_mask_delta_max": {
+              "type": "number",
+              "default": 0.05,
+              "description": "마스크 밖 변화량 허용치 (5%)"
+            }
+          }
+        },
+        "similarity": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "similarity_threshold": {
+              "type": "number",
+              "default": 0.95,
+              "description": "유사도 임계값 (95% 이상 시 플래그)"
+            },
+            "reference_library_path": {"type": "string"}
+          }
+        }
+      }
+    },
+    "rate_limits": {
+      "type": "object",
+      "properties": {
+        "max_sessions_per_day": {"type": "integer"},
+        "max_render_time_ms": {"type": "integer"},
+        "max_file_size_mb": {"type": "integer"}
+      }
+    },
+    "data_retention": {
+      "type": "object",
+      "properties": {
+        "artifacts_ttl_days": {"type": "integer", "default": 30},
+        "edit_graphs_ttl_days": {"type": "integer", "default": 90},
+        "audit_logs_ttl_days": {"type": "integer", "default": 365}
+      }
+    },
+    "created_at": {
+      "type": "integer",
+      "description": "정책 생성 시각 (Unix timestamp ms)"
+    },
+    "updated_at": {
+      "type": "integer",
+      "description": "정책 수정 시각 (Unix timestamp ms)"
+    }
+  },
+  "required": ["policy_id", "org_id", "allowed_operations", "audit_level", "qc_gates"]
+}

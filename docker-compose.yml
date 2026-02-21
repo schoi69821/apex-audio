@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  control-plane:
+    build:
+      context: ./packages/control-plane
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - RENDER_WORKER_ENDPOINT=http://render-worker:5000
+      - NATS_URL=nats://nats:4222
+      - DB_PATH=/data/nde.db
+    volumes:
+      - ./packages/control-plane:/app
+      - control-data:/data
+    depends_on:
+      - nats
+      - render-worker
+    restart: unless-stopped
+
+  render-worker:
+    build:
+      context: ./packages/render-workers
+      dockerfile: Dockerfile
+    runtime: nvidia
+    environment:
+      - CUDA_VISIBLE_DEVICES=0,1
+      - ACE_MODEL_PATH=/models/ace-step-1.5
+      - CACHE_DIR=/cache
+      - NATS_URL=nats://nats:4222
+    volumes:
+      - ./packages/render-workers:/app
+      - ./cache:/cache
+      - /path/to/models:/models:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 2
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  nde-core:
+    build:
+      context: ./packages/nde-core
+      dockerfile: Dockerfile
+    environment:
+      - DB_PATH=/data/editgraph.db
+      - NATS_URL=nats://nats:4222
+    volumes:
+      - ./packages/nde-core:/app
+      - nde-data:/data
+    depends_on:
+      - nats
+    restart: unless-stopped
+
+  qc-metrics:
+    build:
+      context: ./packages/qc-metrics
+      dockerfile: Dockerfile
+    environment:
+      - NATS_URL=nats://nats:4222
+      - REFERENCE_LIBRARY_PATH=/data/reference_library
+    volumes:
+      - ./packages/qc-metrics:/app
+      - qc-data:/data
+    depends_on:
+      - nats
+    restart: unless-stopped
+
+  nats:
+    image: nats:2.10-alpine
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: >
+      --jetstream
+      --store_dir /data
+      --max_memory_store 64MB
+      --max_file_store 10GB
+    volumes:
+      - nats-data:/data
+    restart: unless-stopped
+
+volumes:
+  control-data:
+  nde-data:
+  qc-data:
+  nats-data:

@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apex-core.io/contracts/editgraph.v1.schema.json",
+  "title": "Edit Graph Contract",
+  "description": "비파괴 편집 그래프 (CRDT-style append-only)",
+  "type": "object",
+  "properties": {
+    "graph_id": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "Edit Graph ULID"
+    },
+    "graph_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "재현성 키 (SHA-256)"
+    },
+    "source_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "원본 오디오 SHA-256"
+    },
+    "created_at": {
+      "type": "integer",
+      "description": "생성 시각 (Unix timestamp ms)"
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "description": "노드 ULID"
+          },
+          "node_type": {
+            "type": "string",
+            "enum": ["dsp", "repaint", "cover", "split", "align", "mix", "export"],
+            "description": "편집 타입"
+          },
+          "params": {
+            "type": "object",
+            "description": "편집 파라미터 (타입별 상이)"
+          },
+          "mask": {
+            "type": "object",
+            "properties": {
+              "start_ms": {"type": "integer"},
+              "end_ms": {"type": "integer"},
+              "regions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "start_ms": {"type": "integer"},
+                    "end_ms": {"type": "integer"},
+                    "channel": {"type": "integer"}
+                  }
+                }
+              }
+            },
+            "description": "편집 마스크 (영역 지정)"
+          },
+          "seed": {
+            "type": "integer",
+            "description": "랜덤 시드 (재현성)"
+          },
+          "engine_version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "description": "렌더 엔진 버전 (semantic versioning)"
+          },
+          "timestamp": {
+            "type": "integer",
+            "description": "노드 생성 시각 (Unix timestamp ms)"
+          },
+          "author": {
+            "type": "string",
+            "description": "편집자 ID (CRDT 병합용)"
+          }
+        },
+        "required": ["node_id", "node_type", "params", "engine_version", "timestamp"]
+      }
+    },
+    "merge_metadata": {
+      "type": "object",
+      "properties": {
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "node_ids": {"type": "array", "items": {"type": "string"}},
+              "resolution": {"type": "string", "enum": ["last-write-wins", "manual", "both"]},
+              "timestamp": {"type": "integer"}
+            }
+          }
+        }
+      },
+      "description": "CRDT 병합 메타데이터"
+    }
+  },
+  "required": ["graph_id", "graph_hash", "source_hash", "nodes"]
+}
