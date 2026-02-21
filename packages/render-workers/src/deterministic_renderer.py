@@ -57,7 +57,8 @@ class DeterministicRenderer:
 
         # 캐시 확인
         cache_key = self._cache_key(node)
-        if cached := self._load_cache(cache_key, audio.shape):
+        cached = self._load_cache(cache_key, audio.shape)
+        if cached is not None:
             self.cache_hits += 1
             return cached
 

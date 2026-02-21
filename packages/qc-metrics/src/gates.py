@@ -90,7 +90,7 @@ class TechnicalGate:
             abs(dc_offset) < self.dc_offset_max
         )
 
-        results["passed"] = passed
+        results["passed"] = bool(passed)
         results["failures"] = []
         if clipping_ratio >= self.clipping_ratio_max:
             results["failures"].append(f"Clipping ratio {clipping_ratio:.4f} exceeds {self.clipping_ratio_max}")
@@ -166,7 +166,7 @@ class LocalityGate:
 
         passed = out_mask_delta < self.threshold
 
-        results["passed"] = passed
+        results["passed"] = bool(passed)
         if not passed:
             results["failures"] = [f"OutMaskDelta {out_mask_delta:.4f} exceeds threshold {self.threshold}"]
         else:
@@ -304,4 +304,4 @@ class QCPipeline:
             all_results["similarity"] = results
             all_passed = all_passed and passed
 
-        return all_passed, all_results
+        return bool(all_passed), all_results
